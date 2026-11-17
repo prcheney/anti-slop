@@ -1,6 +1,6 @@
 ---
 name: anti-slop
-description: The anti-slop workflow for a website or landing page. Copy gate script, a decision-model second opinion, humanizer pass, sentence audit (dramatic commas, stranded pronouns), claims list, headline rule with a value proposition map, Impeccable, then a human visual review, in that order. Use when asked to "anti-slop the site", "de-AI this", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
+description: The anti-slop workflow for a website or landing page. Copy gate script, a decision-model second opinion, humanize pass, sentence audit (dramatic commas, stranded pronouns), claims list, headline rule with a value proposition map, Impeccable, then a human visual review, in that order. Use when asked to "anti-slop the site", "de-AI this", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
 argument-hint: "<repo path>"
 ---
 
@@ -43,26 +43,22 @@ no proof, contrast framing, choppy, vague reference, slogan headline, abstract w
 python3 scripts/check_copy_jev.py <every content and page file>
 ```
 
-- **Medical sites, and any copy that quotes a patient, a lead or a private message: add `--local`.**
-  That runs Kev on this machine and nothing leaves it. The default sends the text to hosted Jev
-  (TypeSafe). `--local` borrows the graphics card for the run (`kev_switch.py`); it refuses while
-  OpenWhispr is recording, so wait for a dictation or meeting to finish.
+- **Medical sites, and any copy that quotes a patient, a lead or a private message: skip this
+  stage.** The script sends the text to Jev (TypeSafe), so it leaves the machine. Say so in the
+  stage report.
 - The flags are a reading list for stages 2, 3 and 5, not a verdict. Never fix a line on a flag
   alone and never rewrite to make a number go down. Read the flagged line; fix it only if it
   breaks a rule in this skill.
 - Read 0.90 and up first. `choppy` is the noisiest question (85 of 319 Acme Roofing paragraphs the reviewer had
   already approved, 2026-11-14), so a `choppy` flag alone on a stat card or a spec line is
   usually nothing.
-- Hosted Jev is the stronger reader: on the same 469 lines it flagged 144, Kev flagged 32, and
-  they agreed 72% of the time. A clean `--local` run means less than a clean hosted run. Say
-  which one ran when reporting the stage.
-- Exit 2 means it could not run (no key, API down, card busy). Say so in the stage report and go
+- Exit 2 means it could not run (no key, API down). Say so in the stage report and go
   on; this stage never blocks.
 
 ## 2. Humanizer pass (Claude, long-form only)
 
-Extract the visible prose (articles, guides, anything over about 150 words) and run the `humanizer`
-skill in detect mode on it. Fix only clusters, not lone tells: honesty signaling, "nobody tells you"
+Extract the visible prose (articles, guides, anything over about 150 words) and run the `humanize`
+skill (bundled in this repo) in review mode on it. Fix only clusters, not lone tells: honesty signaling, "nobody tells you"
 framing, aphorism closers, "would rather X than Y", overclaims. Targeted edits, no voice injection.
 Any new pattern worth catching every time goes into `check_copy.py` the same session, tested first
 against the client repos for false positives.

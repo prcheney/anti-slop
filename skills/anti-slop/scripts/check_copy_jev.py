@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Second-layer copy check. Asks Jev (TypeSafe AI) the judgment questions a regex cannot.
-Usage: check_copy_jev.py <file> [file...] [--all] [--threshold 0.75] [--local] [--headings]
+Usage: check_copy_jev.py <file> [file...] [--all] [--threshold 0.75] [--headings]
 
 FLAG-ONLY. check_copy.py stays the pass/fail gate. This script never fails a file on
 Jev's say-so: exit 0 = ran (flags or not), 2 = could not run (no key, API down).
@@ -8,12 +8,7 @@ Jev answers with a probability, not text, so every flag shows its number. --all 
 prints paragraphs that passed, which is how to tune the threshold.
 
 Key: GNOME login keyring entry labelled `typesafe-api-key`. Never read from a file or env var.
-Do not run the hosted mode on the clinic site copy that quotes patient data: the text leaves the machine.
-
---local asks Kev (open local version of Jev, ~/kev) on this machine instead: no key, nothing
-leaves the machine, safe for patient data. It borrows the graphics card through
-kev_switch.py (OpenWhispr's cleanup model is unloaded for the run and reloads on the
-next dictation) and hands it back when done.
+Do not run it on copy that quotes patient data or private messages: the text leaves the machine.
 """
 import os,re,sys,time
 from concurrent.futures import ThreadPoolExecutor
@@ -21,8 +16,6 @@ sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from check_copy import visible_copy, headings
 
 API="https://api.typesafe.ai/v1/systemone"
-LOCAL_API="http://127.0.0.1:8009/v1/systemone"
-SWITCH=os.path.join(os.path.dirname(os.path.abspath(__file__)),"kev_switch.py")
 KEY_LABEL="typesafe-api-key"
 MIN_WORDS=8
 HEAD_ONLY=False   # --headings: score headings only (the empathy pass)
@@ -97,11 +90,8 @@ def get_key():
 
 def ask(sess,key,state,questions):
     for attempt in range(5):
-        if key is None:
-            r=sess.post(LOCAL_API,json={"state":state,"model":"kev-latest","questions":questions},timeout=120)
-        else:
-            r=sess.post(API,headers={"Authorization":f"Bearer {key}"},
-                        json={"state":state,"model":"jev-latest","questions":questions},timeout=30)
+        r=sess.post(API,headers={"Authorization":f"Bearer {key}"},
+                    json={"state":state,"model":"jev-latest","questions":questions},timeout=30)
         if r.status_code in (429,529): time.sleep(2**attempt); continue
         r.raise_for_status()
         return {k:v["noul"] for k,v in r.json()["answers"].items()}
@@ -157,26 +147,13 @@ def main():
     show_all="--all" in args
     thr=0.75
     if "--threshold" in args: thr=float(args[args.index("--threshold")+1])
-    local="--local" in args
     global HEAD_ONLY; HEAD_ONLY="--headings" in args
     files=[a for i,a in enumerate(args) if not a.startswith("--") and (i==0 or args[i-1]!="--threshold")]
     if not files: print(__doc__); sys.exit(2)
 
-    import requests,subprocess
+    import requests
     sess=requests.Session()
-    started=False
-    if local:
-        key=None
-        was_up=subprocess.run([sys.executable,SWITCH,"status"],capture_output=True,text=True).stdout.startswith("Kev: up")
-        if not was_up:
-            r=subprocess.run([sys.executable,SWITCH,"up"],capture_output=True,text=True)
-            if r.returncode: print(f"ERROR: local Kev not available - {r.stdout.strip()}"); sys.exit(2)
-            started=True
-    else:
-        key=get_key()
-    try: run(files,sess,key,thr,show_all,"Kev (local)" if local else "Jev (hosted)")
-    finally:
-        if started: subprocess.run([sys.executable,SWITCH,"down"],capture_output=True)
+    run(files,sess,get_key(),thr,show_all,"Jev")
 
 def run(files,sess,key,thr,show_all,who):
     jobs=[]

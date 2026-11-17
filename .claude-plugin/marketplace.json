@@ -5,7 +5,7 @@
     {
       "name": "anti-slop",
       "source": "./",
-      "description": "A staged workflow and scripts that take AI-sounding copy off a website or landing page before it launches."
+      "description": "A staged workflow, scripts and a humanize checklist that take AI-sounding copy off a website, landing page or any other text."
     }
   ]
 }
