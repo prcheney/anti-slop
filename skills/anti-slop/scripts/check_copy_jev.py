@@ -7,7 +7,12 @@ Jev's say-so: exit 0 = ran (flags or not), 2 = could not run (no key, API down).
 Jev answers with a probability, not text, so every flag shows its number. --all also
 prints paragraphs that passed, which is how to tune the threshold.
 
-Key: GNOME login keyring entry labelled `typesafe-api-key`. Never read from a file or env var.
+Needs a TypeSafe API key (get one at https://console.typesafe.ai/keys). Looked up in order:
+  1. the TYPESAFE_API_KEY environment variable (TypeSafe's own convention, any OS)
+  2. the OS keychain through the `keyring` package, service "typesafe", user "api-key"
+     (macOS Keychain, Windows Credential Manager, Linux Secret Service):
+       pip install keyring && keyring set typesafe api-key
+  3. a GNOME keyring entry labelled `typesafe-api-key` (older Linux setups)
 Do not run it on copy that quotes patient data or private messages: the text leaves the machine.
 """
 import os,re,sys,time
@@ -16,6 +21,7 @@ sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from check_copy import visible_copy, headings
 
 API="https://api.typesafe.ai/v1/systemone"
+KEY_ENV="TYPESAFE_API_KEY"
 KEY_LABEL="typesafe-api-key"
 MIN_WORDS=8
 HEAD_ONLY=False   # --headings: score headings only (the empathy pass)
@@ -77,16 +83,25 @@ def is_hero(src,ln):
     return bool(re.match(r"\s{2,6}title:",line)) and "lead:" in " ".join(src[ln:ln+2])
 
 def get_key():
+    key=os.environ.get(KEY_ENV,"").strip()
+    if key: return key
+    try:
+        import keyring
+        key=(keyring.get_password("typesafe","api-key") or "").strip()
+        if key: return key
+    except Exception: pass
     try:
         import gi; gi.require_version("Secret","1")
         from gi.repository import Secret
-    except Exception as e: sys.exit(f"ERROR: libsecret bindings unavailable ({e})")
-    svc=Secret.Service.get_sync(Secret.ServiceFlags.LOAD_COLLECTIONS,None)
-    for col in svc.get_collections():
-        for it in col.get_items():
-            if it.get_label()==KEY_LABEL:
-                it.load_secret_sync(None); return it.get_secret().get_text().strip()
-    print(f"ERROR: no keyring entry labelled {KEY_LABEL}"); sys.exit(2)
+        svc=Secret.Service.get_sync(Secret.ServiceFlags.LOAD_COLLECTIONS,None)
+        for col in svc.get_collections():
+            for it in col.get_items():
+                if it.get_label()==KEY_LABEL:
+                    it.load_secret_sync(None); return it.get_secret().get_text().strip()
+    except Exception: pass
+    print(f"ERROR: no TypeSafe API key. Get one at https://console.typesafe.ai/keys, then set "
+          f"{KEY_ENV} or run: pip install keyring && keyring set typesafe api-key")
+    sys.exit(2)
 
 def ask(sess,key,state,questions):
     for attempt in range(5):
@@ -151,7 +166,8 @@ def main():
     files=[a for i,a in enumerate(args) if not a.startswith("--") and (i==0 or args[i-1]!="--threshold")]
     if not files: print(__doc__); sys.exit(2)
 
-    import requests
+    try: import requests
+    except ImportError: print("ERROR: needs the requests package (pip install requests)"); sys.exit(2)
     sess=requests.Session()
     run(files,sess,get_key(),thr,show_all,"Jev")
 

@@ -25,7 +25,7 @@ Then ask Claude to "anti-slop the site" from inside a website repo, or to "human
 | Stage | Tool | Needs |
 |---|---|---|
 | 1. Copy gate | `scripts/check_copy.py` | Python 3, nothing else |
-| 1b. Second opinion | `scripts/check_copy_jev.py` | A TypeSafe API key in the GNOME keyring, labelled `typesafe-api-key`. Optional: the stage never blocks |
+| 1b. Second opinion | `scripts/check_copy_jev.py` | Python 3 with `requests`, and your own TypeSafe API key (see below). Optional: the stage never blocks |
 | 2. Humanize | `skills/humanize` | Nothing, it ships in this repo |
 | 3. Sentence audit | `scripts/sentence_audit.py` | The site running locally |
 | 4-5. Claims, headlines | Claude and you | Nothing |
@@ -40,7 +40,22 @@ python3 skills/anti-slop/scripts/check_copy.py src/app/page.tsx content/*.ts
 
 Exit 0 means it passed. It reads `.md` as prose and pulls only the visible copy out of `.tsx`, `.jsx`, `.ts` and `.html`.
 
-`check_copy_jev.py` sends copy to Jev (TypeSafe), so skip it on copy that quotes patients or private messages.
+## TypeSafe API key (stage 1b)
+
+Stage 1b asks Jev, TypeSafe's decision model, the judgment questions a regex cannot. Everyone who runs it needs their own key:
+
+1. Get a key from the [TypeSafe console](https://console.typesafe.ai/keys).
+2. Store it one of two ways:
+   - Set the `TYPESAFE_API_KEY` environment variable (TypeSafe's standard, works on any OS).
+   - Or keep it in your OS keychain (macOS Keychain, Windows Credential Manager, Linux Secret Service):
+     ```
+     pip install keyring requests
+     keyring set typesafe api-key
+     ```
+
+The script checks the environment variable first, then the keychain. Without a key it prints how to get one and exits 2, and the rest of the workflow carries on.
+
+`check_copy_jev.py` sends copy to TypeSafe's hosted API, so skip it on copy that quotes patients or private messages.
 
 ## Updates
 

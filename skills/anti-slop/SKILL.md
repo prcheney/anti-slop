@@ -52,6 +52,8 @@ python3 scripts/check_copy_jev.py <every content and page file>
 - Read 0.90 and up first. `choppy` is the noisiest question (85 of 319 Acme Roofing paragraphs the reviewer had
   already approved, 2026-11-14), so a `choppy` flag alone on a stat card or a spec line is
   usually nothing.
+- It needs the user's own TypeSafe API key, in `TYPESAFE_API_KEY` or the OS keychain (`keyring set
+  typesafe api-key`); get one at https://console.typesafe.ai/keys.
 - Exit 2 means it could not run (no key, API down). Say so in the stage report and go
   on; this stage never blocks.
 
