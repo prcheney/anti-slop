@@ -1,7 +1,7 @@
 ---
 name: anti-slop
-description: The anti-slop workflow for a website or landing page. Copy gate script, a decision-model second opinion, humanize pass, sentence audit (dramatic commas, stranded pronouns), claims list, headline rule with a value proposition map, Impeccable, then a human visual review, in that order. Use when asked to "anti-slop the site", "de-AI this", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
-argument-hint: "<repo path>"
+description: Takes AI-sounding writing out of a website, a landing page or any piece of text. For a site it runs the full workflow in order (copy gate script, Jev second opinion, writing checklist, sentence audit, claims list, headline rules with a value proposition map, Impeccable, human visual review). For an email, post, doc or pasted copy it runs the writing checklist and the copy gate. Use when asked to "anti-slop the site", "de-AI this", "humanize this", "sounds like AI", "too robotic", "sounds like ChatGPT", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
+argument-hint: "<repo path, file, or pasted text>"
 ---
 
 # Anti-slop
@@ -9,6 +9,24 @@ argument-hint: "<repo path>"
 Slop is anything a reader can tell a machine made: phrasing, structure, invented facts, templated
 layout. Scripts catch the mechanical part, Claude catches the patterns scripts miss, and the reviewer
 judges the rest on the review sheet. 
+
+## Which run
+
+- **A website or landing page repo:** run the website workflow below, every stage in order.
+- **A piece of text** (email, post, doc, article, pasted copy): run the text workflow and stop.
+
+## Text workflow
+
+1. Detect the mode and work through [checklist.md](checklist.md). Never fabricate. Section F (voice)
+   applies only in essay mode and only with material the author supplied.
+2. If the text is in a file, run `python3 scripts/check_copy.py <file>` and fix every FAIL. For
+   pasted text, write it to a temporary `.md` file first.
+3. Optional: `python3 scripts/check_copy_jev.py <file>` for a second opinion (needs a TypeSafe key;
+   see stage 1b). Skip it for private or patient text.
+4. Return the rewrite and the changes table from the checklist. When asked to review only, flag
+   each passage with the checklist item and a concrete fix.
+
+## Website workflow
 
 Run the stages in order. One commit per content file, so the reviewer can revert any one. Report each stage
 in a line before starting the next.
@@ -57,10 +75,10 @@ python3 scripts/check_copy_jev.py <every content and page file>
 - Exit 2 means it could not run (no key, API down). Say so in the stage report and go
   on; this stage never blocks.
 
-## 2. Humanizer pass (Claude, long-form only)
+## 2. Writing checklist (Claude, long-form only)
 
-Extract the visible prose (articles, guides, anything over about 150 words) and run the `humanize`
-skill (bundled in this repo) in review mode on it. Fix only clusters, not lone tells: honesty signaling, "nobody tells you"
+Extract the visible prose (articles, guides, anything over about 150 words) and review it against
+[checklist.md](checklist.md). Fix only clusters, not lone tells: honesty signaling, "nobody tells you"
 framing, aphorism closers, "would rather X than Y", overclaims. Targeted edits, no voice injection.
 Any new pattern worth catching every time goes into `check_copy.py` the same session, tested first
 against the client repos for false positives.

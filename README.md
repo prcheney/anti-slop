@@ -1,9 +1,9 @@
 # anti-slop
 
-Claude Code skills for taking AI-written copy off a website, landing page or any other text. Two skills ship here:
+A Claude Code skill that takes AI-written copy out of a website, a landing page or any other text. It has two runs:
 
-- **`anti-slop`**: the full pre-launch workflow for a site. It runs seven stages in order: a regex copy gate, a Jev second opinion, a humanize pass, a sentence audit, a claims list, a headline pass and a visual review.
-- **`humanize`**: a checklist for removing AI writing patterns from any text (general, academic or essay mode), aligned with the anti-slop rules: where the two differ, anti-slop wins. `anti-slop` calls it in stage 2; it also works on its own for emails, posts and docs.
+- **Website workflow**, for a site before it launches. Seven stages in order: a regex copy gate, a Jev second opinion, a writing checklist, a sentence audit, a claims list, a headline pass and a visual review.
+- **Text workflow**, for an email, post, doc or pasted copy. The writing checklist (`skills/anti-slop/checklist.md`, general, academic or essay mode) plus the copy gate.
 
 Every rule in it came from a real correction on a real site. The principles table in `SKILL.md` records each correction: the line that was rejected, the line that was approved, and the check that now catches it.
 
@@ -16,9 +16,9 @@ As a Claude Code plugin:
 /plugin install anti-slop@anti-slop
 ```
 
-Or copy `skills/anti-slop/` and `skills/humanize/` into `~/.claude/skills/`.
+Or copy `skills/anti-slop/` into `~/.claude/skills/`.
 
-Then ask Claude to "anti-slop the site" from inside a website repo, or to "humanize this" on any text.
+Then ask Claude to "anti-slop the site" from inside a website repo, or to "de-AI this" or "humanize this" on any text.
 
 ## What runs where
 
@@ -26,7 +26,7 @@ Then ask Claude to "anti-slop the site" from inside a website repo, or to "human
 |---|---|---|
 | 1. Copy gate | `scripts/check_copy.py` | Python 3, nothing else |
 | 1b. Second opinion | `scripts/check_copy_jev.py` | Python 3 with `requests`, and your own TypeSafe API key (see below). Optional: the stage never blocks |
-| 2. Humanize | `skills/humanize` | Nothing, it ships in this repo |
+| 2. Writing checklist | `checklist.md` | Nothing |
 | 3. Sentence audit | `scripts/sentence_audit.py` | The site running locally |
 | 4-5. Claims, headlines | Claude and you | Nothing |
 | 6. Impeccable | `npx impeccable detect` | Node |

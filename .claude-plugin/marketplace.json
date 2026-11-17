@@ -5,7 +5,7 @@
     {
       "name": "anti-slop",
       "source": "./",
-      "description": "A staged workflow, scripts and a humanize checklist that take AI-sounding copy off a website, landing page or any other text."
+      "description": "One skill, with scripts and a writing checklist, that takes AI-sounding copy out of a website, landing page or any other text."
     }
   ]
 }

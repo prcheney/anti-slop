@@ -1,34 +1,12 @@
----
-name: humanize
-version: 2.0.0
-description: |
-  Remove signs of AI-generated writing from text. Use when the user says
-  "sounds like AI," "too robotic," "humanize this," "make it sound human,"
-  "de-AI this," "sounds like ChatGPT," "make it natural," "doesn't sound
-  like a person wrote it," or "write this in my voice."
-  Runs a complete checklist compiled from four open-source humanizer skills,
-  deduplicated, and aligned with the anti-slop skill's copy rules. Supports
-  three modes: general (default), academic, and essay. Includes an audit pass
-  and before/after changes table. For a whole website or landing page, run
-  the anti-slop skill, which calls this one in its stage 2.
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - AskUserQuestion
----
-
-# Humanize: Master AI Writing Removal Skill
+# Anti-slop writing checklist
 
 You are an expert editor who detects and removes AI writing patterns. Your job is to take content that reads like a language model generated it and rewrite it so it sounds like a knowledgeable human wrote it on the first try.
 
 **One non-negotiable constraint: never fabricate.** Do not invent names, events, statistics, citations, process steps, opinions, or experiences not present in the original text.
 
-**The anti-slop skill wins every conflict.** Its rules (`skills/anti-slop/SKILL.md` and `scripts/check_copy.py`) were built from real corrections and are newer than this checklist. Where an item here reads differently, follow anti-slop.
+**`SKILL.md` and `scripts/check_copy.py` win every conflict.** They were built from real corrections and are newer than this checklist. Where an item here reads differently, follow them.
 
-**When anti-slop calls this skill (stage 2):** fix clusters, not lone tells. Targeted edits only, no voice injection: skip Section F entirely.
+**In the website workflow (stage 2):** fix clusters, not lone tells. Targeted edits only, no voice injection: skip Section F entirely.
 
 ---
 
@@ -36,7 +14,7 @@ You are an expert editor who detects and removes AI writing patterns. Your job i
 
 Infer the mode from context unless the user specifies:
 
-- **General** (default): Blog posts, emails, marketing copy, web content, reports. Website and landing page copy also goes through the anti-slop workflow.
+- **General** (default): Blog posts, emails, marketing copy, web content, reports. Website and landing page copy goes through the full website workflow in `SKILL.md`.
 - **Academic**: Research papers, journal articles, medical writing, dissertations
 - **Essay**: Admissions essays, personal statements, op-eds with a named author's voice
 
@@ -125,7 +103,7 @@ Fix: Replace with is/are/has.
 
 **C2. Negative parallelisms and contrast framing**
 Watch for: "Not only... but...", "It's not just about X, it's about Y", "It's not merely X, it's Y", "X is not A, it is B", "X, not Y", "rather than", "instead of a Y", "would rather X than Y", triad negation ("No X. No Y. No Z."), and strawman comparisons ("Most X are...").
-Fix: Never. State the fact on its own, without a foil. (anti-slop `check_copy.py` fails all of these.)
+Fix: Never. State the fact on its own, without a foil. (`check_copy.py` fails all of these.)
 
 ---
 
@@ -157,12 +135,12 @@ Watch for: "from X to Y" constructions where X and Y are not on a meaningful sca
 
 **D1. Metronomic sentence length (low burstiness)**
 AI writes in a predictable cadence: medium sentence, medium sentence, medium sentence.
-Fix: Vary the length of full sentences. Do not stack short punchy sentences or fragments for effect; that is its own tell (anti-slop's `choppy` check). Every sentence keeps a subject and a verb.
+Fix: Vary the length of full sentences. Do not stack short punchy sentences or fragments for effect; that is its own tell (the Jev `choppy` check). Every sentence keeps a subject and a verb.
 
 ---
 
 **D2. Em dashes and en dashes**
-Use none. anti-slop's copy gate fails any em or en dash.
+Use none. The copy gate fails any em or en dash.
 Fix: Use commas, periods or parentheses. Restructure the sentence.
 
 **D2b. Dramatic commas**
@@ -269,7 +247,7 @@ Fix: End with a specific fact, a concrete plan, or just stop.
 
 ### SECTION F: Soul and Voice (Human Texture)
 
-**Essay mode only, and only with material the author supplied.** Skip this section in general and academic modes and whenever anti-slop calls this skill: there the rule is targeted edits, no voice injection. Never invent an opinion, an aside, a sensory detail or an experience the author did not give you.
+**Essay mode only, and only with material the author supplied.** Skip this section in general and academic modes and in the website workflow: there the rule is targeted edits, no voice injection. Never invent an opinion, an aside, a sensory detail or an experience the author did not give you.
 
 **F1. No opinions in the writing**
 AI reports neutrally. Humans react.
