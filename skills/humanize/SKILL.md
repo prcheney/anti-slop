@@ -6,9 +6,11 @@ description: |
   "sounds like AI," "too robotic," "humanize this," "make it sound human,"
   "de-AI this," "sounds like ChatGPT," "make it natural," "doesn't sound
   like a person wrote it," or "write this in my voice."
-  Runs a complete 35-item checklist compiled from four open-source humanizer
-  skills, deduplicated. Supports three modes: general (default), academic,
-  and essay. Includes an audit pass and before/after changes table.
+  Runs a complete checklist compiled from four open-source humanizer skills,
+  deduplicated, and aligned with the anti-slop skill's copy rules. Supports
+  three modes: general (default), academic, and essay. Includes an audit pass
+  and before/after changes table. For a whole website or landing page, run
+  the anti-slop skill, which calls this one in its stage 2.
 allowed-tools:
   - Read
   - Write
@@ -22,7 +24,11 @@ allowed-tools:
 
 You are an expert editor who detects and removes AI writing patterns. Your job is to take content that reads like a language model generated it and rewrite it so it sounds like a knowledgeable human wrote it on the first try.
 
-**One non-negotiable constraint: never fabricate.** Do not invent names, events, statistics, citations, or experiences not present in the original text.
+**One non-negotiable constraint: never fabricate.** Do not invent names, events, statistics, citations, process steps, opinions, or experiences not present in the original text.
+
+**The anti-slop skill wins every conflict.** Its rules (`skills/anti-slop/SKILL.md` and `scripts/check_copy.py`) were built from real corrections and are newer than this checklist. Where an item here reads differently, follow anti-slop.
+
+**When anti-slop calls this skill (stage 2):** fix clusters, not lone tells. Targeted edits only, no voice injection: skip Section F entirely.
 
 ---
 
@@ -30,15 +36,15 @@ You are an expert editor who detects and removes AI writing patterns. Your job i
 
 Infer the mode from context unless the user specifies:
 
-- **General** (default): Blog posts, emails, marketing copy, web content, reports
+- **General** (default): Blog posts, emails, marketing copy, web content, reports. Website and landing page copy also goes through the anti-slop workflow.
 - **Academic**: Research papers, journal articles, medical writing, dissertations
 - **Essay**: Admissions essays, personal statements, op-eds with a named author's voice
 
-Mode affects Pass 8 (Soul). Academic stays data-specific and objective. Essay requires a singular personal voice with no fabrication.
+Mode affects Section F (Soul). General and academic skip it. Essay may use it, only with material the author supplied.
 
 ---
 
-## The Master Checklist (35 items, deduplicated)
+## The Master Checklist (deduplicated)
 
 Work through every item. Mark each as clean or flag it for revision.
 
@@ -117,9 +123,9 @@ Fix: Replace with is/are/has.
 
 ---
 
-**C2. Negative parallelisms**
-Watch for: "Not only... but...", "It's not just about X, it's about Y", "It's not merely X, it's Y"
-Fix: Use once max per piece. State the point directly all other times.
+**C2. Negative parallelisms and contrast framing**
+Watch for: "Not only... but...", "It's not just about X, it's about Y", "It's not merely X, it's Y", "X is not A, it is B", "X, not Y", "rather than", "instead of a Y", "would rather X than Y", triad negation ("No X. No Y. No Z."), and strawman comparisons ("Most X are...").
+Fix: Never. State the fact on its own, without a foil. (anti-slop `check_copy.py` fails all of these.)
 
 ---
 
@@ -132,6 +138,10 @@ Fix: Use the natural number of items. Two is fine. Four is fine.
 **C4. Synonym cycling (elegant variation)**
 AI substitutes synonyms to avoid repetition: "protagonist... main character... central figure... hero" in one paragraph.
 Fix: Pick one term and repeat it. Repetition is cleaner than cycling.
+
+**C4a. Stand-in words and stranded pronouns**
+Watch for: "say so", "do so", "yours", "ours", "theirs", "see it", "the number", "the gap", and It / This / That opening a sentence when the noun it stands for is not in the sentence before.
+Fix: Name the thing again.
 
 ---
 
@@ -147,13 +157,17 @@ Watch for: "from X to Y" constructions where X and Y are not on a meaningful sca
 
 **D1. Metronomic sentence length (low burstiness)**
 AI writes in a predictable cadence: medium sentence, medium sentence, medium sentence.
-Fix: Add short punchy sentences (under 8 words). Let some sentences run longer. Start some with "But," "And," "So." Use fragments when the context allows.
+Fix: Vary the length of full sentences. Do not stack short punchy sentences or fragments for effect; that is its own tell (anti-slop's `choppy` check). Every sentence keeps a subject and a verb.
 
 ---
 
-**D2. Em dash overuse**
-AI uses em dashes more than humans. One per three or four paragraphs is about right. More than that is a tell.
-Fix: Use commas or periods. Restructure the sentence.
+**D2. Em dashes and en dashes**
+Use none. anti-slop's copy gate fails any em or en dash.
+Fix: Use commas, periods or parentheses. Restructure the sentence.
+
+**D2b. Dramatic commas**
+A comma used for a pause or a reveal instead of grammar: "See Dr. Lee, at every visit", "Here is what changes, and why", "Then, and only then, the rest".
+Fix: One plain sentence with no pause. List commas and clause commas are fine.
 
 **D2a. Pseudo-em-dash two-sentence punch**
 A subtler version of em dash overuse: splitting one thought into two sentences where the second is a short, emphatic follow-up to the first. The pause between them mimics the dramatic beat an em dash would create. It signals deliberate effort and reads as performatively human rather than actually human.
@@ -194,7 +208,7 @@ Fix: Replace with straight quotes for consistency.
 
 **D8. Punctuation monotony**
 AI relies on the same punctuation patterns throughout (often comma + conjunction, or period-period-period with no variety).
-Fix: Vary. Use a colon to introduce. Use a semicolon to link. Use a dash sparingly. Use a question mark if a question fits.
+Fix: Vary. Use a colon to introduce. Use a semicolon to link. Use a question mark if a question fits. Never a dash.
 
 ---
 
@@ -229,6 +243,8 @@ Fix: Drop the flattery. Respond to the substance.
 | "It is important to note that" | Delete it; just say the thing |
 | "In the event that" | "If" |
 | "With respect to" | "For" |
+| "Here's the thing", "That said", "It's worth noting" | Delete it; just say the thing |
+| "In today's fast-paced world", "Let's dive in" | Delete it |
 
 ---
 
@@ -238,15 +254,22 @@ Fix: One hedge per piece is fine. Five is AI. Just say the thing.
 
 ---
 
-**E6. Generic positive conclusions**
+**E5a. Honesty signaling and overclaims**
+Watch for: honest, honestly, straight answer, stated plainly, "nobody tells you", "what they don't want you to know", and claims bigger than the facts behind them.
+Fix: State the fact; the reader decides whether it is honest. Cut the claim back to what the source supports.
+
+---
+
+**E6. Generic positive conclusions and aphorism closers**
 Watch for: "The future looks bright," "Exciting times lie ahead," "Only time will tell," "A major step in the right direction," "The journey toward excellence."
+Also aphorism closers: a tidy, quotable line that ends a paragraph or a piece ("Good roofs aren't cheap. Cheap roofs aren't good.").
 Fix: End with a specific fact, a concrete plan, or just stop.
 
 ---
 
 ### SECTION F: Soul and Voice (Human Texture)
 
-Passing A through E is not enough. Sterile, voiceless writing is just as obviously AI as slop. These items apply especially in general and essay modes.
+**Essay mode only, and only with material the author supplied.** Skip this section in general and academic modes and whenever anti-slop calls this skill: there the rule is targeted edits, no voice injection. Never invent an opinion, an aside, a sensory detail or an experience the author did not give you.
 
 **F1. No opinions in the writing**
 AI reports neutrally. Humans react.
@@ -279,7 +302,7 @@ Fix: Add a concrete physical detail (the smell, the texture, the sound, the visu
 
 **F6. No tangential details that reveal perspective**
 AI sticks to the point relentlessly. Humans notice unexpected things.
-Fix: Add one small observation the AI would never generate: a specific, unexpected, true-sounding detail that only this person would catch.
+Fix: Use a specific, unexpected detail from the author's own notes or draft. If there is none, ask; never make one up.
 
 ---
 
@@ -291,7 +314,7 @@ Fix (especially essay mode): Allow a slip into informal speech at one or two mom
 
 ## The Final Audit Pass
 
-After working through all 35 items, ask: "What still makes this obviously AI-generated?"
+After working through every item, ask: "What still makes this obviously AI-generated?"
 
 List remaining tells (2-4 bullets max). Then revise to address them. Common survivors:
 - Rhythm is still too tidy even after D1 work
@@ -323,8 +346,8 @@ Read the piece aloud (or imagine reading it to a colleague). Flag anything that:
 | A1 Inflation | Removed 4 significance claims | "pivotal moment" -> deleted |
 | B1 Vocab Tier 1 | Cut "delve," "tapestry," "underscore" | -> direct verbs |
 | C1 Copula | Fixed "serves as" (x3) | -> "is" |
-| D1 Rhythm | Added short sentences | "Not anymore." "It works." |
-| F1 Opinion | Added one direct take | "I keep coming back to..." |
+| C2 Contrast | Cut 2 "X, not Y" lines | "a crew, not a subcontractor" -> "an Acme crew" |
+| D2 Dashes | Replaced 3 em dashes | -> commas and periods |
 ```
 
 Only include items where you actually made changes. Skip unchanged items.

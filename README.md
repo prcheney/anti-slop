@@ -3,7 +3,7 @@
 Claude Code skills for taking AI-written copy off a website, landing page or any other text. Two skills ship here:
 
 - **`anti-slop`**: the full pre-launch workflow for a site. It runs seven stages in order: a regex copy gate, a Jev second opinion, a humanize pass, a sentence audit, a claims list, a headline pass and a visual review.
-- **`humanize`**: a 35-item checklist for removing AI writing patterns from any text (general, academic or essay mode). `anti-slop` calls it in stage 2; it also works on its own for emails, posts and docs.
+- **`humanize`**: a checklist for removing AI writing patterns from any text (general, academic or essay mode), aligned with the anti-slop rules: where the two differ, anti-slop wins. `anti-slop` calls it in stage 2; it also works on its own for emails, posts and docs.
 
 Every rule in it came from a real correction on a real site. The principles table in `SKILL.md` records each correction: the line that was rejected, the line that was approved, and the check that now catches it.
 
