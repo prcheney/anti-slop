@@ -1,9 +1,6 @@
 # anti-slop
 
-A Claude Code skill that takes AI-written copy out of a website, a landing page or any other text. It has two runs:
-
-- **Website workflow**, for a site before it launches. Seven stages in order: a regex copy gate, a Jev second opinion, a writing checklist, a sentence audit, a claims list, a headline pass and a visual review.
-- **Text workflow**, for an email, post, doc or pasted copy. The writing checklist (`skills/anti-slop/checklist.md`, general, academic or essay mode) plus the copy gate.
+A Claude Code skill that takes AI-written copy out of anything: a website, a landing page, an email, a post, a doc or a pasted paragraph. Everything goes through one seven-stage process in order: a regex copy gate, a Jev second opinion, a writing checklist, a sentence audit, a claims list, headline rules, and, for rendered pages, Impeccable and a visual review. Each stage says what copy it applies to.
 
 Every rule in it came from a real correction on a real site. The principles table in `SKILL.md` records each correction: the line that was rejected, the line that was approved, and the check that now catches it.
 

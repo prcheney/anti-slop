@@ -1,6 +1,6 @@
 ---
 name: anti-slop
-description: Takes AI-sounding writing out of a website, a landing page or any piece of text. For a site it runs the full workflow in order (copy gate script, Jev second opinion, writing checklist, sentence audit, claims list, headline rules with a value proposition map, Impeccable, human visual review). For an email, post, doc or pasted copy it runs the writing checklist and the copy gate. Use when asked to "anti-slop the site", "de-AI this", "humanize this", "sounds like AI", "too robotic", "sounds like ChatGPT", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
+description: One process that takes AI-sounding writing out of any copy, from a full website to an email, post, doc or pasted paragraph. Seven stages in order (copy gate script, Jev second opinion, writing checklist, sentence audit, claims list, headline rules with a value proposition map, then Impeccable and a human visual review for rendered pages); each stage says when it applies. Use when asked to "anti-slop the site", "anti-slop this", "de-AI this", "humanize this", "sounds like AI", "too robotic", "sounds like ChatGPT", "it looks generated", before any site or page launches, and after a large batch of AI-written copy.
 argument-hint: "<repo path, file, or pasted text>"
 ---
 
@@ -10,55 +10,57 @@ Slop is anything a reader can tell a machine made: phrasing, structure, invented
 layout. Scripts catch the mechanical part, Claude catches the patterns scripts miss, and the reviewer
 judges the rest on the review sheet. 
 
-## Which run
+## One process for all copy
 
-- **A website or landing page repo:** run the website workflow below, every stage in order.
-- **A piece of text** (email, post, doc, article, pasted copy): run the text workflow and stop.
+Every piece of copy goes through the same stages in order: a website repo, a landing page, an
+email, a post, a doc or pasted text. Each stage starts with when it applies. Skip a stage only when
+its "Applies to" line rules it out, and say so in one line. Report each stage in a line before
+starting the next. Never fabricate a fact, a number, a process step, an opinion or an experience
+to fill a sentence.
 
-## Text workflow
+**Pasted text:** save it to a temporary `.md` file first so the scripts can read it.
 
-1. Detect the mode and work through [checklist.md](checklist.md). Never fabricate. Section F (voice)
-   applies only in essay mode and only with material the author supplied.
-2. If the text is in a file, run `python3 scripts/check_copy.py <file>` and fix every FAIL. For
-   pasted text, write it to a temporary `.md` file first.
-3. Optional: `python3 scripts/check_copy_jev.py <file>` for a second opinion (needs a TypeSafe key;
-   see stage 1b). Skip it for private or patient text.
-4. Return the rewrite and the changes table from the checklist. When asked to review only, flag
-   each passage with the checklist item and a concrete fix.
+**Website repos only:**
 
-## Website workflow
+- One commit per content file, so the reviewer can revert any one.
+- Before stage 1, mark the copy pass so the Stop hook does not demand a review sheet after every
+  one-line fix (it did on Acme Roofing, 2026-11-14):
 
-Run the stages in order. One commit per content file, so the reviewer can revert any one. Report each stage
-in a line before starting the next.
+  ```bash
+  touch ~/.cache/quality-gate/copy-pass-<repo folder name>
+  ```
 
-**Before stage 1, mark the copy pass** so the Stop hook does not demand a review sheet after every
-one-line fix (it did on Acme Roofing, 2026-11-14):
+  Touch it again at the start of each later session of the same pass; it stops counting after six
+  hours. Remove it at stage 7, before the shoot. Never start a shoot while the reviewer is
+  answering copy fixes.
 
-```bash
-touch ~/.cache/quality-gate/copy-pass-<repo folder name>
-```
+**What you hand back:** on a website, the commits and the stage reports. On any other copy, the
+rewrite, the changes table from [checklist.md](checklist.md), and the claims list from stage 4.
+When asked to review only, flag each passage with the rule it breaks and a concrete fix.
 
-Touch it again at the start of each later session of the same pass; it stops counting after six
-hours. Remove it at stage 7, before the shoot. Never start a shoot while the reviewer is answering copy
-fixes.
+## 1. Copy gate (script)
 
-## 1. Copy gate (script, every visible file)
+Applies to: all copy.
 
 ```bash
-python3 scripts/check_copy.py <every content and page file>
+python3 scripts/check_copy.py <every content and page file, or the text file>
 ```
 
-Content often lives in `.ts` data files (`content/*.ts`), not just `.tsx`. Run it on all of them.
+It reads `.md` and `.txt` as prose and pulls only visible copy out of `.tsx`, `.jsx`, `.ts` and
+`.html`. On a website, content often lives in `.ts` data files (`content/*.ts`), not just `.tsx`. Run it on all of them.
 Fix every FAIL by stating the fact plainly. Never invent a claim, number or process step to fill a
 sentence. Read every WARN; fix the honesty-signaling and strawman ones. Exit 0 before stage 2.
 
-## 1b. Second opinion (script, flag-only, every content file)
+## 1b. Second opinion (script, flag-only)
+
+Applies to: all copy, except medical sites and anything that quotes a patient, a lead or a
+private message.
 
 After the gate exits 0, ask the decision model the judgment questions a regex cannot: templated,
 no proof, contrast framing, choppy, vague reference, slogan headline, abstract wording.
 
 ```bash
-python3 scripts/check_copy_jev.py <every content and page file>
+python3 scripts/check_copy_jev.py <every content and page file, or the text file>
 ```
 
 - **Medical sites, and any copy that quotes a patient, a lead or a private message: skip this
@@ -75,24 +77,29 @@ python3 scripts/check_copy_jev.py <every content and page file>
 - Exit 2 means it could not run (no key, API down). Say so in the stage report and go
   on; this stage never blocks.
 
-## 2. Writing checklist (Claude, long-form only)
+## 2. Writing checklist (Claude)
 
-Extract the visible prose (articles, guides, anything over about 150 words) and review it against
-[checklist.md](checklist.md). Fix only clusters, not lone tells: honesty signaling, "nobody tells you"
+Applies to: all prose. On a website, the long-form prose only (articles, guides, anything over
+about 150 words); short lines are covered by stages 1, 3 and 5. On any other copy, the whole piece,
+in the mode the checklist detects (general, academic or essay).
+
+Review it against [checklist.md](checklist.md). On a website, fix only clusters, not lone tells: honesty signaling, "nobody tells you"
 framing, aphorism closers, "would rather X than Y", overclaims. Targeted edits, no voice injection.
 Any new pattern worth catching every time goes into `check_copy.py` the same session, tested first
 against the client repos for false positives.
 
-## 3. Sentence audit: dramatic commas and stranded pronouns (Claude, every page)
+## 3. Sentence audit: dramatic commas and stranded pronouns (Claude)
+
+Applies to: all copy. On a website, every page.
 
 Built from the clinic audit, 2026-11-02 (28 fixes the reviewer approved one by one). The copy gate
-catches "X, not Y"; it does not catch these. List every candidate with:
+catches "X, not Y"; it does not catch these. On a website running locally, list every candidate with:
 
 ```bash
 python3 scripts/sentence_audit.py http://localhost:<port> --repo <repo>
 ```
 
-Read both lists by hand and fix:
+On any other copy, read it sentence by sentence for the same four failures. Fix:
 
 - **Dramatic comma**: a comma used for a pause or a reveal instead of grammar. "See Dr. Lee, at
   every visit". "Twenty four years as a physician, most of it in acute care". "Here is what changes,
@@ -119,10 +126,13 @@ While rewriting, these got rejected on the clinic site and will be again:
 - Two sections that describe the same steps. When a page has a process list and a "what happens
   next" list, one of them covers only the call and the other covers treatment.
 
-Present fixes to the reviewer one at a time: the line now, why it fails in one sentence, the fix, "Use it,
+On a website, present fixes to the reviewer one at a time: the line now, why it fails in one sentence, the fix, "Use it,
 or rewrite?" Never a batch.
 
 ## 4. Claims list (Claude, then the client)
+
+Applies to: any copy that states facts about a client, a company or a person. On copy that is not
+a website, list the unconfirmed facts at the end of the reply as yes/no questions instead of a file.
 
 Log every fact the site states about the client that nobody has confirmed: prices, crews, warranty
 terms, process steps, counts, ratings. Group into yes/no questions in
@@ -130,6 +140,10 @@ terms, process steps, counts, ratings. Group into yes/no questions in
 us; the rest go to the client. The reviewer sends; never email it.
 
 ## 5. Headline rule (Claude, then a headline pass with the reviewer)
+
+Applies to: any copy with a headline, a hero, a title, a subhead, a button or an email subject
+line. The prospect test and the value proposition map apply to all of them; the Jev tier and the
+prospect cards are for website heroes.
 
 Every headline implies "Get" (overt about 1 in 10, on heroes with a hard offer and final CTAs),
 answers where am I / what can I do / why, and leads with what the reader gains. Short. No repeated
@@ -244,6 +258,8 @@ the script cannot know the right name, so fix each hit by hand.
 
 ## 6. Impeccable (script, automatic)
 
+Applies to: rendered pages only.
+
 Runs inside the visual review shoot at desktop and phone width on every template. Its findings
 print on each template's card. To run it alone:
 
@@ -257,6 +273,8 @@ Fix every finding except the two known false positives (`tight-leading`, a round
 smaller long-headline size, not by ignoring it.
 
 ## 7. Visual review (the reviewer)
+
+Applies to: rendered pages only.
 
 First `rm -f ~/.cache/quality-gate/copy-pass-<repo folder name>`. Then run the `visual-review` skill: shoot, pre-pass notes, sheet. Tell the reviewer which template to start
 with. His notes come back through Copy all notes; act on them, then shoot again.
