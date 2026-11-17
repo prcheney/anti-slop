@@ -1,0 +1,11 @@
+{
+  "name": "anti-slop",
+  "owner": { "name": "Paul Cheney" },
+  "plugins": [
+    {
+      "name": "anti-slop",
+      "source": "./",
+      "description": "A staged workflow and scripts that take AI-sounding copy off a website or landing page before it launches."
+    }
+  ]
+}
